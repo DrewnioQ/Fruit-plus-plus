@@ -53,7 +53,7 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     for i in range(3):
         name, hsv_lower, hsv_upper = color_profiles(i)
         mask = cv2.inRange(img_hsv, hsv_lower, hsv_upper)
-        cv2.imshow(f"Mask {i}", mask)
+
         conts, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         biggest = sorted(conts, key=cv2.contourArea, reverse=True)[0]
         rect = cv2.boundingRect(biggest)
@@ -71,6 +71,8 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
 
         cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), thickness=2)
         cv2.putText(img, name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 255), thickness=2)
+        mask_res = cv2.resize(mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+        cv2.imshow(f"Mask {name}", mask_res)
 
     cv2.imshow("Post", img)
 
