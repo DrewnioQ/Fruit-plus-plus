@@ -73,7 +73,7 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     """
     # TODO: Implement detection method.
     img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-    img_res = cv2.resize(img, dsize=None, fx=0.25, fy=0.25, interpolation=cv2.INTER_CUBIC)
+    # img_res = cv2.resize(img, dsize=None, fx=0.25, fy=0.25, interpolation=cv2.INTER_CUBIC)
     img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     Fruit.img = img
@@ -101,8 +101,8 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     #         cv2.putText(img, name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 255), thickness=2)
     #         mask_res = cv2.resize(mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
     #         cv2.imshow(f"Mask {fruit_rect.create_mask()}", mask_res)
-
-    cv2.imshow("Post", img)
+    img_res = cv2.resize(img, dsize=None, fx=0.25, fy=0.25, interpolation=cv2.INTER_CUBIC)
+    cv2.imshow("Post", img_res)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
