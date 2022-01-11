@@ -11,6 +11,8 @@ from typing import Dict
 
 class Fruit:
 
+    img = None
+
     def __init__(self, img_hsv, name, hsv_lower, hsv_upper):
         self.img_hsv = img_hsv
         self.name = name
@@ -55,6 +57,7 @@ class Fruit:
 
         return rect
 
+
 def detect_fruits(img_path: str) -> Dict[str, int]:
     """Fruit detection function, to implement.
 
@@ -71,8 +74,9 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     # TODO: Implement detection method.
     img = cv2.imread(img_path, cv2.IMREAD_COLOR)
     img_res = cv2.resize(img, dsize=None, fx=0.25, fy=0.25, interpolation=cv2.INTER_CUBIC)
-    img_hsv = cv2.cvtColor(img_res, cv2.COLOR_BGR2HSV)
+    img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
+    Fruit.img = img
     apple = Fruit(img_hsv=img_hsv,
                   name="apple",
                   hsv_lower=np.array([0, 50, 50]),
@@ -91,12 +95,12 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     orange_rect = orange.get_rect()
     fruits_rects = [apple_rect, banana_rect, orange_rect]
 
-    for fruit_rect in fruits_rects:
-        if fruit_rect:
-            # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), thickness=2)
-            # cv2.putText(img, name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 255), thickness=2)
-            # mask_res = cv2.resize(mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
-            # cv2.imshow(f"Mask {fruit_rect.create_mask()}", mask_res)
+    # for fruit_rect in fruits_rects:
+    #     if fruit_rect:
+    #         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), thickness=2)
+    #         cv2.putText(img, name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 255), thickness=2)
+    #         mask_res = cv2.resize(mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+    #         cv2.imshow(f"Mask {fruit_rect.create_mask()}", mask_res)
 
     cv2.imshow("Post", img)
 
