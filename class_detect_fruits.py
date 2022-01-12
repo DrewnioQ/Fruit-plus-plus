@@ -10,6 +10,7 @@ from typing import Dict
 
 
 class Fruit:
+
     img = None
 
     def __init__(self, img_hsv, name, hsv_lower, hsv_upper):
@@ -30,9 +31,7 @@ class Fruit:
     def create_mask(self):
         """Create a mask with given hsv threshold values"""
 
-        img_hsv = self.img_hsv
-
-        self.mask = cv2.inRange(img_hsv, self.hsv_lower, self.hsv_upper)
+        self.mask = cv2.inRange(self.img_hsv, self.hsv_lower, self.hsv_upper)
 
         return self.mask
 
@@ -63,18 +62,17 @@ class Fruit:
     def draw_rect(self):
         """Draws a rectangle around found object on original image"""
 
-        x, y, w, h = self.get_rect()
+        rect = self.get_rect()
 
-        # try:
-        #     x, y, w, h = self.get_rect()
-        # except TypeError:
-        #     x = y = w = h = 0
+        if rect:
+            x, y, w, h = rect
+            cv2.rectangle(Fruit.img, (x, y), (x+w, y+h), (0, 255, 0), thickness=2)
+            cv2.putText(Fruit.img, self.name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 255),
+                        thickness=2)
+            # mask_res = cv2.resize(self.mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+            cv2.imshow(f"Mask of {self.name.upper()}", self.mask)
 
-        cv2.rectangle(Fruit.img, (x, y), (x + w, y + h), (0, 255, 0), thickness=2)
-        cv2.putText(Fruit.img, self.name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 255),
-                    thickness=2)
-        # mask_res = cv2.resize(self.mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
-        cv2.imshow(f"Mask of {self.name.upper()}", self.mask)
+        return None
 
 
 def detect_fruits(img_path: str) -> Dict[str, int]:
