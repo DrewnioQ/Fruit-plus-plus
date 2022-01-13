@@ -40,37 +40,40 @@ class Fruit:
 
         mask = self.create_mask()
         conts, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        biggest = sorted(conts, key=cv2.contourArea, reverse=True)[0]
+        # biggest = sorted(conts, key=cv2.contourArea, reverse=True)[0]
 
-        return biggest
+        return conts
 
     def get_rect(self):
         """Returns dimensions of a found rectangle"""
 
-        biggest = self.find_conts()
+        conts = self.find_conts()
+        rects = []
 
-        rect = cv2.boundingRect(biggest)
-        x, y, w, h = rect
+        for cont in conts:
+            rect = cv2.boundingRect(cont)
+            x, y, w, h = rect
 
-        if w < 100 or h < 100:
-            x = y = w = h = 0
-            rect = x, y, w, h
-            return rect
+            if w < 65 or h < 65:
+                continue
+            rects.append(rect)
 
-        return rect
+        return rects
 
     def draw_rect(self):
         """Draws a rectangle around found object on original image"""
 
-        rect = self.get_rect()
+        rects = self.get_rect()
 
-        if rect:
-            x, y, w, h = rect
-            cv2.rectangle(Fruit.img, (x, y), (x+w, y+h), (0, 255, 0), thickness=2)
-            cv2.putText(Fruit.img, self.name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 255),
-                        thickness=2)
-            # mask_res = cv2.resize(self.mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
-            cv2.imshow(f"Mask of {self.name.upper()}", self.mask)
+        if rects:
+            for rect in rects:
+                x, y, w, h = rect
+                cv2.rectangle(Fruit.img, (x, y), (x + w, y + h), (0, 255, 0), thickness=2)
+                cv2.putText(Fruit.img, self.name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 255),
+                            thickness=2)
+
+        mask_res = cv2.resize(self.mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+        cv2.imshow(f"Mask of {self.name.upper()}", self.mask)
 
         return None
 
@@ -90,21 +93,21 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     """
     # TODO: Implement detection method.
     img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-    img_res = cv2.resize(img, dsize=None, fx=0.25, fy=0.25, interpolation=cv2.INTER_CUBIC)
+    img_res = cv2.resize(img, dsize=None, fx=0.15, fy=0.15, interpolation=cv2.INTER_CUBIC)
     img_hsv = cv2.cvtColor(img_res, cv2.COLOR_BGR2HSV)
 
     Fruit.img = img_res
     apple  = Fruit(img_hsv=img_hsv,
                    name="apple",
-                   hsv_lower=np.array([0, 50, 50]),
+                   hsv_lower=np.array([0, 50, 0]),
                    hsv_upper=np.array([9, 255, 255]))
     banana = Fruit(img_hsv=img_hsv,
                    name="banana",
-                   hsv_lower=np.array([24, 75, 75]),
+                   hsv_lower=np.array([22, 80, 60]),
                    hsv_upper=np.array([35, 255, 255]))
     orange = Fruit(img_hsv=img_hsv,
                    name="orange",
-                   hsv_lower=np.array([12, 150, 200]),
+                   hsv_lower=np.array([0, 200, 144]),
                    hsv_upper=np.array([20, 255, 255]))
 
     apple.draw_rect()
@@ -134,8 +137,8 @@ def main(data_path, output_file_path):
 
         results[filename] = fruits
 
-    with open(output_file_path, 'w') as ofp:
-        json.dump(results, ofp)
+    # with open(output_file_path, 'w') as ofp:
+    #     json.dump(results, ofp)
 
 
 if __name__ == '__main__':
