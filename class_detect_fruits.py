@@ -6,19 +6,20 @@ import numpy as np
 from glob import glob
 from tqdm import tqdm
 
+from pathlib import Path
 from typing import Dict
 
 
 class Fruit:
-
     img = None
 
-    def __init__(self, img_hsv, name, hsv_lower, hsv_upper):
+    def __init__(self, img_hsv, name):
         self.img_hsv = img_hsv
         self.name = name
-        self.hsv_lower = hsv_lower
-        self.hsv_upper = hsv_upper
+        self.hsv_lower = np.array([])
+        self.hsv_upper = np.array([])
         self.mask = None
+        self.found_objects = 0
 
     # def img_conv2hsv(self):
     #     """Image resize and conv to hsv"""
@@ -28,40 +29,52 @@ class Fruit:
     #
     #     return img_hsv
 
-    def create_mask(self):
+    def create_mask(self, hsv_lower, hsv_upper):
         """Create a mask with given hsv threshold values"""
+        self.hsv_lower = hsv_lower
+        self.hsv_upper = hsv_upper
 
-        self.mask = cv2.inRange(self.img_hsv, self.hsv_lower, self.hsv_upper)
+        if self.name == "apple":
+            mask1 = cv2.inRange(self.img_hsv, hsv_lower[0], hsv_upper[0])
+            mask2 = cv2.inRange(self.img_hsv, hsv_lower[1], hsv_upper[1])
+            # mask3 = cv2.inRange(self.img_hsv, hsv_lower[2], hsv_upper[2])
 
-        return self.mask
+            self.mask = cv2.bitwise_or(mask1, mask2)
+        else:
+            self.mask = cv2.inRange(self.img_hsv, self.hsv_lower, self.hsv_upper)
 
-    def find_conts(self):
-        """Finds contours on a given mask and returns the biggest one"""
-
-        mask = self.create_mask()
-        conts, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        # biggest = sorted(conts, key=cv2.contourArea, reverse=True)[0]
-
-        return conts
+    # def find_conts(self):
+    #     """Finds contours on a given mask and returns the biggest one"""
+    #
+    #     mask = self.mask
+    #     conts, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #     # biggest = sorted(conts, key=cv2.contourArea, reverse=True)[0]
+    #
+    #     return conts
 
     def get_rect(self):
-        """Returns dimensions of a found rectangle"""
-
-        conts = self.find_conts()
+        """
+        Finds contours on a given mask, finds rectangles around these contours
+        and returns dimensions of found_objects rectangles
+        """
+        mask = self.mask
+        conts, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         rects = []
 
         for cont in conts:
             rect = cv2.boundingRect(cont)
             x, y, w, h = rect
 
-            if w < 65 or h < 65:
+            if w < 70 or h < 70:
                 continue
+
             rects.append(rect)
+            self.found_objects += 1
 
         return rects
 
     def draw_rect(self):
-        """Draws a rectangle around found object on original image"""
+        """Draws a rectangle around found_objects object on original image"""
 
         rects = self.get_rect()
 
@@ -97,19 +110,18 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     img_hsv = cv2.cvtColor(img_res, cv2.COLOR_BGR2HSV)
 
     Fruit.img = img_res
-    apple  = Fruit(img_hsv=img_hsv,
-                   name="apple",
-                   hsv_lower=np.array([0, 50, 0]),
-                   hsv_upper=np.array([9, 255, 255]))
-    banana = Fruit(img_hsv=img_hsv,
-                   name="banana",
-                   hsv_lower=np.array([22, 80, 60]),
-                   hsv_upper=np.array([35, 255, 255]))
-    orange = Fruit(img_hsv=img_hsv,
-                   name="orange",
-                   hsv_lower=np.array([0, 200, 144]),
-                   hsv_upper=np.array([20, 255, 255]))
+    apple = Fruit(img_hsv=img_hsv, name="apple")
+    banana = Fruit(img_hsv=img_hsv, name="banana")
+    orange = Fruit(img_hsv=img_hsv, name="orange")
 
+    apple.create_mask(hsv_lower=np.array([[0, 50, 40], [0, 75, 50]]),
+                      hsv_upper=np.array([[9, 220, 255], [18, 210, 150]]))
+
+    banana.create_mask(hsv_lower=np.array([20, 90, 120]),
+                       hsv_upper=np.array([30, 255, 250]))
+
+    orange.create_mask(hsv_lower=np.array([11, 200, 130]),
+                       hsv_upper=np.array([18, 255, 255]))
     apple.draw_rect()
     banana.draw_rect()
     orange.draw_rect()
@@ -119,26 +131,25 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    return {'apple': 0, 'banana': 0, 'orange': 0}
+    return {'apple': apple.found_objects, 'banana': banana.found_objects, 'orange': orange.found_objects}
 
 
 @click.command()
-@click.option('-p', '--data_path', help='Path to data directory')
-@click.option('-o', '--output_file_path', help='Path to output file')
-def main(data_path, output_file_path):
-    img_list = glob(f'{data_path}/*.jpg')
+@click.option('-p', '--data_path', help='Path to data directory', type=click.Path(exists=True, file_okay=False,
+                                                                                  path_type=Path), required=True)
+@click.option('-o', '--output_file_path', help='Path to output file', type=click.Path(dir_okay=False, path_type=Path),
+              required=True)
+def main(data_path: Path, output_file_path: Path):
+    img_list = data_path.glob('*.jpg')
 
     results = {}
 
     for img_path in tqdm(sorted(img_list)):
-        fruits = detect_fruits(img_path)
+        fruits = detect_fruits(str(img_path))
+        results[img_path.name] = fruits
 
-        filename = img_path.split('/')[-1]
-
-        results[filename] = fruits
-
-    # with open(output_file_path, 'w') as ofp:
-    #     json.dump(results, ofp)
+    with open(output_file_path, 'w') as ofp:
+        json.dump(results, ofp)
 
 
 if __name__ == '__main__':
