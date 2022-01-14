@@ -3,9 +3,7 @@ import json
 import click
 import numpy as np
 
-from glob import glob
 from tqdm import tqdm
-
 from pathlib import Path
 from typing import Dict
 
@@ -85,7 +83,7 @@ class Fruit:
                 cv2.putText(Fruit.img, self.name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 255),
                             thickness=2)
 
-        mask_res = cv2.resize(self.mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
+        # mask_res = cv2.resize(self.mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
         cv2.imshow(f"Mask of {self.name.upper()}", self.mask)
 
         return None
