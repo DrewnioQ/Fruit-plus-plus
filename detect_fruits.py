@@ -31,13 +31,20 @@ class Fruit:
         """Create a mask with given hsv threshold values"""
         self.hsv_lower = hsv_lower
         self.hsv_upper = hsv_upper
+        # for lower, upper in zip(hsv_lower, hsv_upper):
+        #     if mask is None:
+        #         self.mask = cv2.inRange(self.img_hsv, hsv_lower[0], hsv_upper[0])
+        #     else:
+        #         self.mask = cv2.bitwise_or(self.mask, cv2.inRange())
 
         if self.name == "apple":
             mask1 = cv2.inRange(self.img_hsv, hsv_lower[0], hsv_upper[0])
             mask2 = cv2.inRange(self.img_hsv, hsv_lower[1], hsv_upper[1])
-            # mask3 = cv2.inRange(self.img_hsv, hsv_lower[2], hsv_upper[2])
+            mask3 = cv2.inRange(self.img_hsv, hsv_lower[2], hsv_upper[2])
 
-            self.mask = cv2.bitwise_or(mask1, mask2)
+            mask = cv2.bitwise_or(mask1, mask2)
+            self.mask = cv2.bitwise_or(mask, mask3)
+            # self.mask = mask1 + mask2 + mask3
         else:
             self.mask = cv2.inRange(self.img_hsv, self.hsv_lower, self.hsv_upper)
 
@@ -72,7 +79,7 @@ class Fruit:
         return rects
 
     def draw_rect(self):
-        """Draws a rectangle around found_objects object on original image"""
+        """Draws a rectangle around found objects on original image"""
 
         rects = self.get_rect()
 
@@ -85,8 +92,6 @@ class Fruit:
 
         # mask_res = cv2.resize(self.mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
         cv2.imshow(f"Mask of {self.name.upper()}", self.mask)
-
-        return None
 
 
 def detect_fruits(img_path: str) -> Dict[str, int]:
@@ -112,19 +117,20 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     banana = Fruit(img_hsv=img_hsv, name="banana")
     orange = Fruit(img_hsv=img_hsv, name="orange")
 
-    apple.create_mask(hsv_lower=np.array([[0, 50, 40], [0, 75, 50]]),
-                      hsv_upper=np.array([[9, 220, 255], [18, 210, 150]]))
+    apple.create_mask(hsv_lower=np.array([[0, 50, 40], [0, 75, 75], [130, 25, 40]]),
+                      hsv_upper=np.array([[9, 220, 255], [18, 215, 150], [180, 200, 230]]))
 
     banana.create_mask(hsv_lower=np.array([20, 90, 120]),
                        hsv_upper=np.array([30, 255, 250]))
 
     orange.create_mask(hsv_lower=np.array([11, 200, 130]),
                        hsv_upper=np.array([18, 255, 255]))
+
     apple.draw_rect()
     banana.draw_rect()
     orange.draw_rect()
 
-    cv2.imshow("Post", img_res)
+    cv2.imshow("Post-mask", img_res)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
