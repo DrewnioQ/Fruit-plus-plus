@@ -17,14 +17,6 @@ class Fruit:
         self.mask = None
         self.found_objects = 0
 
-    # def img_conv2hsv(self):
-    #     """Image resize and conv to hsv"""
-    #
-    #     img_res = cv2.resize(self.img_hsv, dsize=None, fx=0.25, fy=0.25, interpolation=cv2.INTER_CUBIC)
-    #     img_hsv = cv2.cvtColor(img_res, cv2.COLOR_BGR2HSV)
-    #
-    #     return img_hsv
-
     def create_mask(self, hsv_lower, hsv_upper):
         """Create a mask with given hsv threshold values"""
 
@@ -35,28 +27,6 @@ class Fruit:
                 self.mask = cv2.inRange(self.img_hsv, hsv_lower[0], hsv_upper[0])
 
         return self.mask
-
-        # if self.name == "apple":
-        #     mask1 = cv2.inRange(self.img_hsv, hsv_lower[0], hsv_upper[0])
-        #     mask2 = cv2.inRange(self.img_hsv, hsv_lower[1], hsv_upper[1])
-        #     mask3 = cv2.inRange(self.img_hsv, hsv_lower[2], hsv_upper[2])
-        #
-        #     mask = cv2.bitwise_or(mask1, mask2)
-        #     self.mask = cv2.bitwise_or(mask, mask3)
-        #     return self.mask
-        #     # self.mask = mask1 + mask2 + mask3
-        # else:
-        #     self.mask = cv2.inRange(self.img_hsv, self.hsv_lower, self.hsv_upper)
-        #     return self.mask
-
-    # def find_conts(self):
-    #     """Finds contours on a given mask and returns the biggest one"""
-    #
-    #     mask = self.mask
-    #     conts, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    #     # biggest = sorted(conts, key=cv2.contourArea, reverse=True)[0]
-    #
-    #     return conts
 
     def get_rect(self, mask):
         """
@@ -101,12 +71,11 @@ class Fruit:
                 cv2.putText(self.img, self.name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 255),
                             thickness=2)
 
-        # mask_res = cv2.resize(self.mask, dsize=None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
         cv2.imshow(f"Mask of {self.name.upper()}", self.mask)
 
 
 def detect_fruits(img_path: str) -> Dict[str, int]:
-    """Fruit detection function, to implement.
+    """Fruit detection function
 
     Parameters
     ----------
@@ -139,15 +108,6 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     apple_rects  = apple.get_rect(apple_mask)
     banana_rects = banana.get_rect(banana_mask)
     orange_rects = orange.get_rect(orange_mask)
-
-    # apple.draw_rect(apple_rects)
-    # banana.draw_rect(banana_rects)
-    # orange.draw_rect(orange_rects)
-    #
-    # cv2.imshow("Post-mask", img_res)
-    #
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
 
     return {'apple': apple.found_objects, 'banana': banana.found_objects, 'orange': orange.found_objects}
 
